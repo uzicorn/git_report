@@ -19,7 +19,7 @@ def local_ahead_behind(source):
     """
     Return integer between [0 , n] {n>0, n = number of commits ahead}
     """
-    subprocess.run("git fetch", shell=True, cwd=source)
+    subprocess.run("git fetch", shell=True, cwd=source, capture_output=True)
     local_ahead_command  = "git rev-list --count origin/main..HEAD"
     local_behind_command = "git rev-list --count HEAD..origin/main"
     count_ahead  = int(subprocess.run(local_ahead_command,  cwd=source, shell=True, capture_output=True, text=True).stdout)

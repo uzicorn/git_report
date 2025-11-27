@@ -15,4 +15,19 @@ def local_uncommitted(source):
     else:
         return False
 
-print(local_uncommitted(source))
+print(f"local_uncommitted : {local_uncommitted(source)}")
+
+def local_ahead(source):
+    """
+    Return integer between 0 and n (n>0, n = number of commits ahead) 
+    """
+    local_ahead_command = "git rev-list --count @{u}..HEAD"
+    response = subprocess.run(local_ahead_command, cwd=source, shell=True, capture_output=True, text=True).stdout
+
+    if response == "0":
+        return False
+    else:
+        return (True, int(response))
+
+print(f"local_ahead : {local_ahead(source)}")
+    

@@ -41,10 +41,10 @@ if is_uncommitted:
     data["status"].append("local_uncommited")
 
 if count_ahead == 0 and count_behind > 0:
-    data["status"].append("local_ahead")
+    data["status"].append("local_behind")
 
 if count_behind == 0 and count_ahead > 0:
-    data["status"].append("local_behind")
+    data["status"].append("local_ahead")
 
 if count_ahead > 0 and count_behind > 0:
     data["status"].append("diverged")

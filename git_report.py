@@ -8,6 +8,7 @@ status_meaning ="""
 | `diverged`            | None                      | TRUE                | TRUE                  |
 """
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from multiprocessing import Pool
 from os import path, listdir
 import subprocess
 import pandas
@@ -60,7 +61,7 @@ def dir_git_status(dir_path, dir_name):
     
     return data
 
-def report (root_dir, filter_dir=[]):
+def report (root_dir, filter_dir=[], processes=None):
     report = []
     
     list_dir_name = listdir(root_dir)
@@ -68,9 +69,17 @@ def report (root_dir, filter_dir=[]):
     if filter_dir:
         list_dir_name = [dir_name for dir_name in list_dir_name if dir_name in filter_dir]
 
-    for dir_name in list_dir_name:
-        dir_path = path.join(root_dir, dir_name)
-        report.append(dir_git_status(dir_path, dir_name))
+    if not processes:
+        # Number of workers handling dir_git_status
+        # I set it to 12 to match my fabulous 4core
+        processes = 12 # Default
+
+    with Pool(processes) as pool:
+        # For parallel processing, we pass all dir_git_status() arguments to a pool. 
+        # The pool runs in parallel : dir_git_status([(dir_1_path, dir_1_name), (dir_2_path, dir_2_name), ...])
+        # Otherwise it takes forever to get a full report on more than 10 git repositories
+        arguments = [(path.join(root_dir, dir_name), dir_name) for dir_name in list_dir_name] 
+        report = pool.starmap(func=dir_git_status, iterable=arguments, )
     
     return pandas.DataFrame(report).to_markdown()
 
@@ -87,6 +96,11 @@ if __name__ == '__main__':
                         metavar="DIRS",
                         help="""Filter report to specific directories --filer_dir "dir_1, ..., dir_n" """)
 
+    parser.add_argument("--processes", 
+                        required=False,
+                        metavar="PRCS",
+                        help="""Number of worker running the status check. Default 12 """)
+    
     args = parser.parse_args()
     
     print(

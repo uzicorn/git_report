@@ -35,13 +35,37 @@ Each repo can have 1 up to 2 statuses :
 - diverged
 
 ## Usage
+
+- `dir_[1::8]` are all **git repositories** linked to their remote branch. Locally, they are inside `$(root_dir)`
+- You want a report on `dir_[1::8]` inside `$(root_dir)`
 ```bash
     py -m git_report --help
     py -m git_report.git_report $(root_dir)
     py -m git_report.git_report $(root_dir) --filter_dir "dir_1, ... ,dir_n"
 ```
+#### Outputs 
+- You ran `py -m git_report.git_report $(root_dir)` : Slow for multiple repositories (up to 10s depending on your internet connexion)
+  
+|    | repo                   | local_uncommitted   | local_ahead   | local_behind   | status      |
+|---:|:-----------------------|:--------------------|:--------------|:---------------|:------------|
+|  0 | dir_1                  | False               | False         | False          | ['in_sync'] |
+|  1 | dir_2                  | True                | False         | False          | ['local_uncommitted'] |
+|  2 | dir_3                  | False               | True          | False          | ['local_ahead'] |
+|  3 | dir4                   | False               | False         | True           | ['local_behind'] |
+|  4 | dir_5                  | False               | True          | True           | ['diverged'] |
+|  5 | dir_6                  | True                | True          | False          | ['local_uncommitted', 'local_ahead'] |
+|  6 | dir_7                  | True                | False         | True           | ['local_uncommitted', 'local_behind'] |
+|  7 | dir_8                  | True                | True          | True           | ['local_uncommitted', 'diverged'] | 
 
-## Git commands
+- You ran `py -m git_report.git_report $(root_dir) --filter_dir "dir_1, dir_2, dir-3"` :
+
+|    | repo                   | local_uncommitted   | local_ahead   | local_behind   | status      |
+|---:|:-----------------------|:--------------------|:--------------|:---------------|:------------|
+|  0 | dir_1                  | False               | False         | False          | ['in_sync'] |
+|  1 | dir_2                  | True                | False         | False          | ['local_uncommitted'] |
+|  2 | dir_3                  | False               | True          | False          | ['local_ahead'] |
+
+## Git commands used in the script
 
 **local branch ahead or behind relative to local**
 ```bash

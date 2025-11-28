@@ -63,9 +63,10 @@ def dir_git_status(dir_path, dir_name):
 
 def report (root_dir, filter_dir=[], processes=None):
     report = []
-    
-    list_dir_name = listdir(root_dir)
-    
+
+    # Apply report only to directories in /root_dir (You may also have Makefile, text files..)
+    list_dir_name = [dir_name for dir_name in listdir(root_dir) if path.isdir(path.join(root_dir, dir_name))] 
+
     if filter_dir:
         list_dir_name = [dir_name for dir_name in list_dir_name if dir_name in filter_dir]
 
@@ -80,8 +81,8 @@ def report (root_dir, filter_dir=[], processes=None):
         # Otherwise it takes forever to get a full report on more than 10 git repositories
         arguments = [(path.join(root_dir, dir_name), dir_name) for dir_name in list_dir_name] 
         report = pool.starmap(func=dir_git_status, iterable=arguments, )
-    
-    return pandas.DataFrame(report).to_markdown()
+
+    return pandas.DataFrame(report)
 
 if __name__ == '__main__':
     parser = ArgumentParser(
@@ -102,7 +103,20 @@ if __name__ == '__main__':
                         help="""Number of worker running the status check. Default 12 """)
     
     args = parser.parse_args()
+
+    # result_df is a dataframe whose colums are :  [repo, local_uncommitted, local_ahead, local_behind, status]
+    result = report(root_dir=args.root_dir, filter_dir=args.filter_dir, processes=args.processes)
     
-    print(
-        report(args.root_dir, args.filter_dir)
-          )
+    #-----------------------------------------------
+    # Customize your response here using result_df |
+    #-----------------------------------------------
+
+    if result["status"].apply(lambda row: row == ["in_sync"]).all():
+        print('All git repositories are synced\nDo you want to display them ? (y/n)')
+        if input() in ['y', 'yes']:
+            print(result.to_markdown())
+    else:    
+        result[" "] = result["status"].apply(
+            lambda x: "XXX" if x != ["in_sync"] else ""
+        )
+        print(result.to_markdown())

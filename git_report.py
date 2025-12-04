@@ -30,16 +30,20 @@ def local_ahead_behind(dir_path):
     Return integer between [0 , n] {n>0, n = number of commits ahead}
     """
     subprocess.run("git fetch", shell=True, cwd=dir_path, capture_output=True)
-    local_ahead_command  = "git rev-list --count origin/main..HEAD"
-    local_behind_command = "git rev-list --count HEAD..origin/main"
-    count_ahead  = int(subprocess.run(local_ahead_command,  cwd=dir_path, shell=True, capture_output=True, text=True).stdout)
-    count_behind = int(subprocess.run(local_behind_command, cwd=dir_path, shell=True, capture_output=True, text=True).stdout)
-    return count_ahead, count_behind
+    local_ahead_cmd  = "git rev-list --count origin/main..HEAD"
+    local_behind_cmd = "git rev-list --count HEAD..origin/main"
+    last_commit_date_cmd = "git log -1 --format=%cd --date=iso"
+
+    count_ahead  = int(subprocess.run(local_ahead_cmd,  cwd=dir_path, shell=True, capture_output=True, text=True).stdout)
+    count_behind = int(subprocess.run(local_behind_cmd, cwd=dir_path, shell=True, capture_output=True, text=True).stdout)
+    last_commit_date = subprocess.run(last_commit_date_cmd, cwd=dir_path, shell=True, capture_output=True, text=True).stdout
+    return count_ahead, count_behind, last_commit_date
+
 
 def dir_git_status(dir_path, dir_name):
     data  = {"repo": dir_name}
     
-    count_ahead, count_behind = local_ahead_behind(dir_path)
+    count_ahead, count_behind, last_commit_date = local_ahead_behind(dir_path)
     is_uncommitted =  local_uncommitted(dir_path)
 
     status = []
@@ -58,10 +62,11 @@ def dir_git_status(dir_path, dir_name):
     data["local_ahead"] = count_ahead > 0
     data["local_behind"] = count_behind > 0
     data["status"] = status
+    data["last_commit_date"] = last_commit_date
     
     return data
 
-def report (root_dir, filter_dir=[], processes=None):
+def report (root_dir, filter_dir=[], processes=None)->pandas.DataFrame:
     report = []
 
     # Apply report only to directories in /root_dir (You may also have Makefile, text files..)
@@ -111,12 +116,18 @@ if __name__ == '__main__':
     # Customize your response here using result_df |
     #-----------------------------------------------
 
+    from pytz import timezone
+    paris_tz = timezone("Europe/Paris")
+    result["last_commit_date"] = pandas.to_datetime(result["last_commit_date"], utc=True, format="ISO8601").dt.tz_convert(paris_tz)
+    result["last_commit_date"] = result["last_commit_date"].apply(lambda row: row.strftime("%Y-%m-%d %H:%M"))
+    result.sort_values(by="last_commit_date", inplace=True, ascending=False, ignore_index=True)
+
     if result["status"].apply(lambda row: row == ["in_sync"]).all():
         print('All git repositories are synced\nDo you want to display them ? (y/n)')
         if input() in ['y', 'yes']:
             print(result.to_markdown())
     else:    
-        result[" "] = result["status"].apply(
+        result[""] = result["status"].apply(
             lambda x: "XXX" if x != ["in_sync"] else ""
         )
         print(result.to_markdown())

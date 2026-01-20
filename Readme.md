@@ -6,6 +6,7 @@ I have a lot of ongoing git projects, some of them are collaborations with other
 ## Goal 
 - Dev a local script that runs inside my project code repository.
 - Each sub-directory is a git repo. The script output must be a report on the versioning status between **local** and **remote**.
+- Run parallel  
 
 ``` bash
 root_dir:
@@ -36,15 +37,15 @@ Each repo can have 1 up to 2 statuses :
 
 ## Usage
 
-- `dir_[1::8]` are all **git repositories** linked to their remote branch. Locally, they are inside `$(root_dir)`
-- You want a report on `dir_[1::8]` inside `$(root_dir)`
+- `dir_[1::n]` are all **git repositories** linked to their remote branch. Locally, they are inside `$(root_dir)`
+- You want a report on `dir_[1::n]` inside `$(root_dir)`
 ```bash
     py -m git_report --help
     py -m git_report.git_report $(root_dir)
     py -m git_report.git_report $(root_dir) --filter_dir "dir_1, ... ,dir_n"
 ```
 #### Outputs 
-- You ran `py -m git_report.git_report $(root_dir)` : Slow for multiple repositories (up to 10s depending on your internet connexion)
+- You ran `py -m git_report.git_report $(root_dir)`
   
 |    | repo                   | local_uncommitted   | local_ahead   | local_behind   | status      |
 |---:|:-----------------------|:--------------------|:--------------|:---------------|:------------|
@@ -57,7 +58,7 @@ Each repo can have 1 up to 2 statuses :
 |  6 | dir_7                  | True                | False         | True           | ['local_uncommitted', 'local_behind'] |
 |  7 | dir_8                  | True                | True          | True           | ['local_uncommitted', 'diverged'] | 
 
-- You ran `py -m git_report.git_report $(root_dir) --filter_dir "dir_1, dir_2, dir-3"` :
+- You ran `py -m git_report.git_report $(root_dir) --filter_dir "dir_1, dir_2, dir_3"` :
 
 |    | repo                   | local_uncommitted   | local_ahead   | local_behind   | status      |
 |---:|:-----------------------|:--------------------|:--------------|:---------------|:------------|

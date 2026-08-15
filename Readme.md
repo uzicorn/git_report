@@ -40,9 +40,10 @@ Each repo can have 1 up to 2 statuses :
 - `dir_[1::n]` are all **git repositories** linked to their remote branch. Locally, they are inside `$(root_dir)`
 - You want a report on `dir_[1::n]` inside `$(root_dir)`
 ```bash
-    py -m git_report --help
-    py -m git_report.git_report $(root_dir)
-    py -m git_report.git_report $(root_dir) --filter_dir "dir_1, ... ,dir_n"
+    pip install -r requirements.txt
+    python3 path-to/git_report.py --help
+    python3 path-to/git_report.py $(root_dir)
+    python3 path-to/git_report.py $(root_dir) --filter_dir "dir_1, ... ,dir_n"
 ```
 #### Outputs 
 - You ran `py -m git_report.git_report $(root_dir)`
